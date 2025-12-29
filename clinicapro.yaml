@@ -1,0 +1,173 @@
+version: '3.8'
+
+# ===== CLINICAPRO - DOCKER SWARM STACK =====
+# Deploy: docker stack deploy -c clinicapro.yaml clinicapro
+
+services:
+  # ===== API Backend =====
+  api:
+    image: clinicapro/api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - Fbzianet
+      - clinicapro_internal
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PORT=8000
+      - QDRANT_URL=http://qdrant:6333
+      - REDIS_URL=redis://redis:6379
+    deploy:
+      mode: replicated
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.clinicapro-api.rule=Host(`api.clinicapro.seudominio.com`)"
+        - "traefik.http.routers.clinicapro-api.entrypoints=websecure"
+        - "traefik.http.routers.clinicapro-api.tls.certresolver=letsencrypt"
+        - "traefik.http.services.clinicapro-api.loadbalancer.server.port=8000"
+    volumes:
+      - clinicapro_logs:/app/logs
+      - clinicapro_temp:/app/temp_audio
+      - clinicapro_temp:/app/temp_images
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ===== Telegram Bot =====
+  bot:
+    image: clinicapro/bot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - clinicapro_internal
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_URL=http://api:8000
+      - PORT=8000
+    deploy:
+      mode: replicated
+      replicas: 1  # Apenas 1 instância do bot
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    volumes:
+      - clinicapro_logs:/app/logs
+      - clinicapro_temp:/app/temp_audio
+      - clinicapro_temp:/app/temp_images
+    command: python -m app.telegram_bot
+
+  # ===== Qdrant Vector Database =====
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    networks:
+      - clinicapro_internal
+      - traefik_public
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.clinicapro-qdrant.rule=Host(`qdrant.clinicapro.seudominio.com`)"
+        - "traefik.http.routers.clinicapro-qdrant.entrypoints=websecure"
+        - "traefik.http.routers.clinicapro-qdrant.tls.certresolver=letsencrypt"
+        - "traefik.http.services.clinicapro-qdrant.loadbalancer.server.port=6333"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:6333/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== Redis Cache =====
+  redis:
+    image: redis:7-alpine
+    networks:
+      - clinicapro_internal
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-clinicapro123}
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  Fbzianet:
+    external: true
+  clinicapro_internal:
+    driver: overlay
+    attachable: true
+
+volumes:
+  qdrant_storage:
+    driver: local
+  redis_data:
+    driver: local
+  clinicapro_logs:
+    driver: local
+  clinicapro_temp:
+    driver: local

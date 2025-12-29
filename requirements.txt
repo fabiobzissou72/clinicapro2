@@ -1,0 +1,64 @@
+# ============================================
+# CLINICAPRO CARDIO - DEPENDENCIES
+# ============================================
+
+# Core Framework
+fastapi>=0.115.6
+uvicorn[standard]>=0.34.0
+python-dotenv>=1.0.1
+pydantic>=2.10.5
+pydantic-settings>=2.7.1
+
+# ===== CrewAI - AI Agents Framework =====
+crewai>=1.7.2
+crewai-tools>=0.18.0
+
+# ===== LLM Providers =====
+openai>=1.59.5
+langchain>=0.3.14
+langchain-openai>=0.2.14
+langchain-community>=0.3.13
+
+# ===== Telegram Bot Integration =====
+python-telegram-bot>=21.10
+
+# ===== Audio Processing (Whisper) =====
+openai-whisper>=20240930
+# pydub>=0.25.1  # Removido - incompatível com Python 3.13
+# ffmpeg-python>=0.2.0  # Não necessário - usando FFmpeg via subprocess
+
+# ===== Image Processing =====
+pillow>=11.0.0
+opencv-python>=4.10.0
+
+# ===== Vector Database (Qdrant) =====
+qdrant-client>=1.12.1
+
+# ===== Database (Supabase) =====
+supabase>=2.10.0
+postgrest>=0.17.2
+
+# ===== Cache (Redis) =====
+redis>=5.2.1
+hiredis>=3.0.0
+
+# ===== PDF Processing =====
+PyPDF2>=3.0.1
+pypdf>=5.1.0
+
+# ===== HTTP & Async =====
+httpx>=0.28.1
+aiohttp>=3.11.11
+
+# ===== Utilities =====
+tenacity>=9.0.0
+python-multipart>=0.0.20
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# ===== Development & Testing =====
+pytest>=8.3.4
+pytest-asyncio>=0.25.2
+black>=24.10.0
+ruff>=0.9.1
+ipython>=8.31.0

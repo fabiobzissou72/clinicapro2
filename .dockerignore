@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Logs e dados temporários
+logs/
+*.log
+temp_audio/
+temp_images/
+
+# Backups
+*.backup
+*.bak
+*_OLD.py
+*_BACKUP.py
+
+# Documentação
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+*.test.py
+.pytest_cache/
+
+# Dados locais
+data/
+*.db
+*.sqlite
+
+# Certificados e chaves
+*.pem
+*.key
+*.crt

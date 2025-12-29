@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+build/
+dist/
+*.egg-info/
+
+# Environment variables - CRITICAL SECURITY
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+.Trash-*
+
+# Docker
+docker-compose.override.yml
+
+# PDFs e dados sensíveis
+app/knowledge/cardio_pdfs/*.pdf
+*.pdf
+
+# Credentials - NEVER COMMIT
+*credentials*.json
+*secrets*.json
+*token*.txt
+
+# Audio files (podem ser grandes)
+*.mp3
+*.wav
+*.ogg
+*.m4a
+temp_audio/
+
+# Image files (podem conter dados sensíveis)
+*.jpg
+*.jpeg
+*.png
+*.bmp
+temp_images/
+
+# Test files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+*~
+.claude/
+nul
+README_OLD.md
