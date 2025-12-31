@@ -5,12 +5,14 @@ Sistema de apoio à decisão cardiológica com IA
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 import logging
 import os
 import uuid
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -33,6 +35,9 @@ from app.crews.cardio_crew import analyze_cardio_case
 
 # Importa routers
 from app.api_patients import router as patients_router
+from app.api_auth import router as auth_router
+from app.api_dashboard import router as dashboard_router
+from app.api_prontuarios import router as prontuarios_router
 
 # ===== APLICAÇÃO FASTAPI =====
 app = FastAPI(
@@ -64,15 +69,18 @@ app.add_middleware(
 )
 
 # ===== ROUTERS =====
+app.include_router(auth_router)
+app.include_router(dashboard_router)
 app.include_router(patients_router)
+app.include_router(prontuarios_router)
 
 # ===== MODELS =====
 class AnalysisRequest(BaseModel):
     """Request para análise de caso clínico"""
     transcription: str = Field(
         ...,
-        min_length=50,
-        description="Texto transcrito da consulta cardiológica"
+        min_length=20,
+        description="Texto transcrito da consulta cardiológica (mínimo 20 caracteres para casos de emergência)"
     )
     doctor_name: Optional[str] = Field(
         default="Médico",
@@ -126,11 +134,23 @@ async def root():
         "version": "0.1.0-beta",
         "status": "active",
         "docs": "/docs",
+        "webapp": "/webapp",
         "endpoints": {
             "health": "/health",
             "analyze": "/api/v1/analyze"
         }
     }
+
+
+@app.get("/webapp", tags=["WebApp"])
+async def get_webapp():
+    """Retorna Telegram Web App"""
+    webapp_path = Path(__file__).parent.parent / "webapp_telegram.html"
+
+    if not webapp_path.exists():
+        raise HTTPException(status_code=404, detail="Web App não encontrado")
+
+    return FileResponse(webapp_path, media_type="text/html")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])

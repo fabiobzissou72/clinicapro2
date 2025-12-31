@@ -415,3 +415,197 @@ async def get_patient_full_profile(patient_id: str) -> Dict[str, Any]:
             "status": "error",
             "error": str(e)
         }
+
+
+# ===== DOCTOR AUTH OPERATIONS (SEM API) =====
+
+async def register_doctor(doctor_data: dict) -> Dict[str, Any]:
+    """
+    Cadastra novo médico DIRETO no banco
+
+    Args:
+        doctor_data: Dict com name, crm, email, password, specialty
+
+    Returns:
+        Dict com status e dados do médico
+    """
+    try:
+        import bcrypt
+
+        supabase = get_supabase_client()
+
+        # Validações
+        if not doctor_data.get("name") or not doctor_data.get("email"):
+            return {
+                "status": "error",
+                "error": "Nome e email são obrigatórios"
+            }
+
+        if not doctor_data.get("password") or len(doctor_data["password"]) < 8:
+            return {
+                "status": "error",
+                "error": "Senha deve ter no mínimo 8 caracteres"
+            }
+
+        # Verifica se email já existe
+        existing = supabase.table("doctors").select("id").eq("email", doctor_data["email"]).execute()
+        if existing.data:
+            return {
+                "status": "error",
+                "error": "Email já cadastrado"
+            }
+
+        # Hash da senha
+        password = doctor_data.pop("password")
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        # Prepara dados
+        insert_data = {
+            "name": doctor_data["name"],
+            "crm": doctor_data.get("crm", ""),
+            "email": doctor_data["email"],
+            "password_hash": password_hash,
+            "specialty": doctor_data.get("specialty", "Cardiologia")
+        }
+
+        # Insere no banco
+        response = supabase.table("doctors").insert(insert_data).execute()
+
+        if response.data:
+            doctor = response.data[0]
+            # Remove password_hash da resposta
+            doctor.pop("password_hash", None)
+
+            return {
+                "status": "success",
+                "doctor": doctor
+            }
+        else:
+            return {
+                "status": "error",
+                "error": "Erro ao criar médico"
+            }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+async def login_doctor(email: str, password: str) -> Dict[str, Any]:
+    """
+    Faz login do médico DIRETO no banco
+
+    Args:
+        email: Email do médico
+        password: Senha
+
+    Returns:
+        Dict com status e dados do médico
+    """
+    try:
+        import bcrypt
+
+        supabase = get_supabase_client()
+
+        # Busca médico por email
+        response = supabase.table("doctors").select("*").eq("email", email).execute()
+
+        if not response.data:
+            return {
+                "status": "error",
+                "error": "Email ou senha inválidos"
+            }
+
+        doctor = response.data[0]
+        password_hash = doctor.get("password_hash", "")
+
+        # Verifica senha
+        if not password_hash or not bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+            return {
+                "status": "error",
+                "error": "Email ou senha inválidos"
+            }
+
+        # Remove password_hash da resposta
+        doctor.pop("password_hash", None)
+
+        return {
+            "status": "success",
+            "doctor": doctor
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+# ===== LISTAGEM OPERATIONS (SEM API) =====
+
+async def list_patients(limit: int = 10, offset: int = 0) -> Dict[str, Any]:
+    """
+    Lista pacientes DIRETO do banco
+
+    Args:
+        limit: Número máximo de pacientes
+        offset: Offset para paginação
+
+    Returns:
+        Dict com lista de pacientes
+    """
+    try:
+        supabase = get_supabase_client()
+
+        response = supabase.table("patients")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .offset(offset)\
+            .execute()
+
+        return {
+            "status": "success",
+            "data": response.data or []
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+async def list_case_analyses(limit: int = 10, offset: int = 0) -> Dict[str, Any]:
+    """
+    Lista prontuários (case_analyses) DIRETO do banco
+
+    Args:
+        limit: Número máximo de prontuários
+        offset: Offset para paginação
+
+    Returns:
+        Dict com lista de prontuários
+    """
+    try:
+        supabase = get_supabase_client()
+
+        response = supabase.table("case_analyses")\
+            .select("*")\
+            .order("created_at", desc=True)\
+            .limit(limit)\
+            .offset(offset)\
+            .execute()
+
+        return {
+            "status": "success",
+            "data": response.data or []
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }

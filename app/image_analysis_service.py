@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Dict, Optional
 from PIL import Image
 import io
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente
+load_dotenv()
 
 from openai import OpenAI
 
@@ -27,8 +31,9 @@ class ImageAnalysisService:
             raise ValueError("OPENAI_API_KEY não configurada nas variáveis de ambiente")
 
         self.client = OpenAI(api_key=api_key)
-        self.model = "gpt-4o-mini"  # Suporta visão e é mais barato
-        logger.info("Image Analysis Service inicializado")
+        # Usa gpt-4o que tem melhor suporte de visão (ou gpt-4o-mini como fallback)
+        self.model = os.getenv("OPENAI_VISION_MODEL", "gpt-4o")
+        logger.info(f"Image Analysis Service inicializado com modelo: {self.model}")
 
     def encode_image(self, image_path: str) -> str:
         """

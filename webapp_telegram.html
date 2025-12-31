@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinicaPro - Dashboard Médico</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--tg-theme-hint-color, #ddd);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            background: var(--tg-theme-button-color, #0088cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color, #e8e8e8);
+            color: var(--tg-theme-text-color, #000);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #0088cc);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666);
+            margin-top: 4px;
+        }
+
+        .list-item {
+            background: var(--tg-theme-bg-color, #fff);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--tg-theme-hint-color, #ddd);
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list-item-subtitle {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c00;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #0c0;
+            border: 1px solid #cfc;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 24px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div id="login-screen">
+            <div class="header">
+                <div class="logo">🏥</div>
+                <h1>ClinicaPro Cardio</h1>
+                <p class="subtitle">Sistema de Apoio à Decisão Médica</p>
+            </div>
+
+            <div id="login-alert"></div>
+
+            <div class="card">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com">
+                </div>
+
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-password" placeholder="Sua senha">
+                </div>
+
+                <button class="btn btn-primary" onclick="doLogin()">Entrar</button>
+                <button class="btn btn-secondary" onclick="showRegister()">Criar Conta</button>
+            </div>
+        </div>
+
+        <!-- Tela de Cadastro -->
+        <div id="register-screen" class="hidden">
+            <div class="header">
+                <h1>Cadastro de Médico</h1>
+            </div>
+
+            <div id="register-alert"></div>
+
+            <div class="card">
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="reg-name" placeholder="Dr(a). Seu Nome">
+                </div>
+
+                <div class="input-group">
+                    <label>CRM</label>
+                    <input type="text" id="reg-crm" placeholder="12345-SP">
+                </div>
+
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="reg-email" placeholder="seu@email.com">
+                </div>
+
+                <div class="input-group">
+                    <label>Senha (mín. 8 caracteres)</label>
+                    <input type="password" id="reg-password" placeholder="Senha segura">
+                </div>
+
+                <div class="input-group">
+                    <label>Telefone (opcional)</label>
+                    <input type="tel" id="reg-phone" placeholder="(11) 99999-9999">
+                </div>
+
+                <button class="btn btn-primary" onclick="doRegister()">Cadastrar</button>
+                <button class="btn btn-secondary" onclick="showLogin()">Voltar para Login</button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard-screen" class="hidden">
+            <div class="header">
+                <h1 id="doctor-name">Carregando...</h1>
+                <p class="subtitle" id="doctor-crm"></p>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-patients">-</div>
+                    <div class="stat-label">Pacientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-consultations">-</div>
+                    <div class="stat-label">Consultas</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 12px;">Prontuários Recentes</h3>
+                <div id="prontuarios-list">
+                    <div class="loading">Carregando...</div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="doLogout()">Sair</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuração
+        const API_URL = 'http://localhost:8000';
+        let authToken = null;
+
+        // Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Verifica se já tem token salvo
+        window.onload = function() {
+            const savedToken = localStorage.getItem('auth_token');
+            if (savedToken) {
+                authToken = savedToken;
+                loadDashboard();
+            }
+        };
+
+        // Funções de navegação
+        function showLogin() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+        }
+
+        // Login
+        async function doLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showAlert('login-alert', 'Preencha email e senha', 'error');
+                return;
+            }
+
+            try {
+                tg.MainButton.showProgress();
+
+                const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('auth_token', authToken);
+                    localStorage.setItem('doctor', JSON.stringify(data.doctor));
+                    tg.showAlert('Login realizado com sucesso!');
+                    loadDashboard();
+                } else {
+                    showAlert('login-alert', data.detail || 'Erro ao fazer login', 'error');
+                }
+            } catch (error) {
+                showAlert('login-alert', 'Erro ao conectar com servidor', 'error');
+            } finally {
+                tg.MainButton.hideProgress();
+            }
+        }
+
+        // Registro
+        async function doRegister() {
+            const name = document.getElementById('reg-name').value;
+            const crm = document.getElementById('reg-crm').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const phone = document.getElementById('reg-phone').value;
+
+            if (!name || !crm || !email || !password) {
+                showAlert('register-alert', 'Preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showAlert('register-alert', 'Senha deve ter no mínimo 8 caracteres', 'error');
+                return;
+            }
+
+            try {
+                tg.MainButton.showProgress();
+
+                const response = await fetch(`${API_URL}/api/v1/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        name, crm, email, password,
+                        specialty: 'Cardiologia',
+                        phone: phone || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    tg.showAlert('Cadastro realizado! Faça login.');
+                    showLogin();
+                } else {
+                    showAlert('register-alert', data.detail || 'Erro ao cadastrar', 'error');
+                }
+            } catch (error) {
+                showAlert('register-alert', 'Erro ao conectar com servidor', 'error');
+            } finally {
+                tg.MainButton.hideProgress();
+            }
+        }
+
+        // Carrega Dashboard
+        async function loadDashboard() {
+            showDashboard();
+
+            const doctor = JSON.parse(localStorage.getItem('doctor'));
+            document.getElementById('doctor-name').textContent = doctor.name;
+            document.getElementById('doctor-crm').textContent = `CRM: ${doctor.crm}`;
+
+            // Carrega estatísticas
+            try {
+                const statsResponse = await fetch(`${API_URL}/api/v1/dashboard/stats`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('stat-patients').textContent = stats.total_patients;
+                    document.getElementById('stat-consultations').textContent = stats.total_consultations;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar stats:', error);
+            }
+
+            // Carrega prontuários
+            try {
+                const prontResponse = await fetch(`${API_URL}/api/v1/dashboard/prontuarios?limit=5`, {
+                    headers: {'Authorization': `Bearer ${authToken}`}
+                });
+
+                if (prontResponse.ok) {
+                    const prontuarios = await prontResponse.json();
+                    const listEl = document.getElementById('prontuarios-list');
+
+                    if (prontuarios.length === 0) {
+                        listEl.innerHTML = '<p style="text-align:center;color:#999;">Nenhum prontuário encontrado</p>';
+                    } else {
+                        listEl.innerHTML = prontuarios.map(p => `
+                            <div class="list-item">
+                                <div class="list-item-title">${p.patient_name || 'Sem paciente'}</div>
+                                <div class="list-item-subtitle">${p.created_at.substring(0, 10)} - ${p.summary.substring(0, 60)}...</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar prontuários:', error);
+            }
+        }
+
+        // Logout
+        function doLogout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('doctor');
+            authToken = null;
+            showLogin();
+            tg.showAlert('Logout realizado');
+        }
+
+        // Mostra alerta
+        function showAlert(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => el.innerHTML = '', 5000);
+        }
+    </script>
+</body>
+</html>

@@ -34,6 +34,16 @@ def create_coordinator():
         - Coordenação de cuidados multidisciplinares
         - Priorização baseada em evidências
 
+        REGRAS CRÍTICAS (OBRIGATÓRIAS):
+        1. NUNCA altere dados clínicos informados pelo médico:
+           - NÃO mude idade, sexo, tempo de sintomas, PA, FC, comorbidades
+           - Copie EXATAMENTE como foi informado
+        2. NUNCA invente resultados de exames não informados:
+           - Se ECG não foi informado, NÃO crie achados
+           - Se troponina não foi informada, NÃO invente valores
+           - Escreva: "Exame não informado. Sugerir: [nome do exame]"
+        3. PODE propor exames e condutas, mas SEM atribuir resultados fictícios
+
         Sua prioridade máxima é sempre a segurança do paciente e identificação
         precoce de condições potencialmente fatais.""",
 

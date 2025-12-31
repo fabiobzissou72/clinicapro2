@@ -29,6 +29,7 @@ class PatientCreate(BaseModel):
     phone: Optional[str] = Field(None, description="Telefone")
     email: Optional[str] = Field(None, description="E-mail")
     birth_date: Optional[str] = Field(None, description="Data de nascimento (YYYY-MM-DD)")
+    age: Optional[int] = Field(None, ge=0, le=150, description="Idade em anos (alternativa a birth_date)")
     gender: Optional[str] = Field(None, description="Gênero (M/F/Outro)")
     blood_type: Optional[str] = Field(None, description="Tipo sanguíneo")
 
