@@ -74,14 +74,22 @@ class WhisperService:
                     response_format="text"
                 )
 
-            logger.info("Transcrição concluída via API")
+            logger.info(f"Transcrição API concluída - Tipo de retorno: {type(transcript)}")
 
-            return {
+            # Garante que transcript é uma string
+            transcript_text = str(transcript) if transcript else ""
+
+            logger.info(f"Texto transcrito: {len(transcript_text)} caracteres")
+
+            result = {
                 "status": "success",
-                "text": transcript,
+                "text": transcript_text,
                 "language": language,
                 "audio_file": audio_file.name
             }
+
+            logger.info(f"Retornando resultado - tipo: {type(result)}, keys: {result.keys()}")
+            return result
 
         except Exception as e:
             logger.error(f"Erro na transcrição: {e}", exc_info=True)
